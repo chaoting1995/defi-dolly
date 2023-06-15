@@ -1,5 +1,5 @@
 # AppWorks Final Project: Defi-Dolly
-> d
+> LSD（Liquid Staking Derivatives，流動性質押衍生品）
 ## Description
 ### Pain Point
 - 一般用戶要透過循環借貸，擴大 Staking 的收益，流程繁雜、gas fee 高、無法達到理想槓桿目標
@@ -30,22 +30,25 @@
         = 1 * 1 + 90%/10% = 10 ETH
 
 ### Solution
+  - Lido + FlashLoan + Compound
 
-```mermaid
-sequenceDiagram
-		title Token Flow
-    User->>+Hub: 1 ETH
-		Note right of User: stake
-		Balancer ->>+Hub: 9 ETH
-			Hub ->>+Lido: 10 ETH
-				Note right of Lido: draw interest
-				Lido ->> -Hub: 8.9 wstETH (= 10 ETH)
-				Hub ->> +Compound: wst8.9 ETH (= 10 ETH)
-				Compound ->> -Hub: 9 ETH
-				Hub ->> -Balancer: 9 ETH
-				Hub ->> -User: wstETH(= 1 ETH)
-				Note right of User: unstake
-```
+(以下本專案，稱 Hub)
+
+  ```mermaid
+  sequenceDiagram
+      title Token Flow
+      User->>+Hub: 1 ETH
+      Note right of User: stake
+      Balancer ->>+Hub: 9 ETH
+        Hub ->>+Lido: 10 ETH
+          Note right of Lido: draw interest
+          Lido ->> -Hub: 8.9 wstETH (= 10 ETH)
+          Hub ->> +Compound: wst8.9 ETH (= 10 ETH)
+          Compound ->> -Hub: 9 ETH
+          Hub ->> -Balancer: 9 ETH
+          Hub ->> -User: wstETH(= 1 ETH)
+          Note right of User: unstake
+  ```
 ## Framework
 (TODO)
 
