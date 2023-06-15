@@ -27,7 +27,7 @@
     - 例如：`UserAsset` = 1 ETH
     - 目標：放大帳面資產 = `UserAsset1 * {1 + [CF / (1 - CF)]}`
         
-        = 1 * 1 + 90%/10% = 10 ETH
+        = 1 * 1 + ( 90% / 10% ) = 10 ETH
 
 ### Solution
   - Lido + FlashLoan + Compound
