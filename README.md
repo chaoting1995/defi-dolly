@@ -128,18 +128,61 @@ git clone https://github.com/chaoting1995/defi-dolly.git
 forge install
 forge build
 ```
-(TODO)
 
-Include step-by-step instructions on how to set up and run the project.
-.env.example
-command example
-If this project includes BE or FE, provide instructions for those as well.
 ## Testing
 
 ```
 forge test --mc DefiDollyTest
 ```
 ## Usage
-(TODO)
+### Step 1: Add test network into MetaMask
+> 交易過程會用到 WETH。Compound V3 跟 Balancer 的 WETH 地址，在正式鏈是相同的，但在測試鏈不同，因此最後一步還錢還不了Balancer，故選擇用 Tenderly fork 正式鏈進行測試
+- name: Dolly Testnet
+- rpc-url: `https://rpc.tenderly.co/fork/7544f53a-f939-4181-a42a-914fca1dec13`
+- chainID: 1
+- Symbol: ETH
 
-Explain how to use the project and provide examples or code snippets to demonstrate its usage.
+<img src="assets/add-network.png" alt width="500px" />
+
+
+### Step 2: Switch to Dolly Testnet
+
+### Step 3: Get Some ETH form test account
+- 測試用免洗帳戶
+- 地址：`0x9bCA1e7FaB7514d27fE1D0785015B7dcCD886F02`
+- 私鑰：`eb17ddd3ab9ee5a67191c8c92bf65502ef001d713c0c06ff9d91db3028cf99a0`
+1. import account
+2. 轉發 100 ETH 給自己常用帳戶
+
+### Step 3-1: (Optional) Get Some stETH
+1. Import stETH `0xae7ab96520de3a18e5e111b5eaab095312d7fe84`
+
+<img src="assets/add-token-steth.png" alt width="200px" />
+
+2. Transfer maybe 50 ETH to stETH, then you will get 50 stETH
+
+### Step 4: go to [Defi-dolly](https://defi-dolly-test.herokuapp.com/stake) website
+
+目前多數欄位都未串接完成，僅主要功能相關欄位為正確資料，可測試如下：
+- Stake ETH
+1. click tab `ETH`
+2. stake 1 ETH 
+3. `Staked Amount` 將顯示個人質押總量： 1 ETH
+
+<img src="assets/stake-eth.png" alt width="300px" />
+
+- Stake stETH
+1. click tab `stETH`
+2. unlock to stake (approve)
+3. stake 2 stETH
+4. `Staked Amount` 將顯示個人質押總量： 3 ETH
+(由於目前 Lido 匯率 ETH:stETH 為 1:1，故質押總量皆以 ETH 顯示)
+
+<img src="assets/stake-steth.png" alt width="300px" />
+
+- [Unstake](https://defi-dolly-test.herokuapp.com/unstake)
+1. click Unstake
+- `Staked Amount` 將顯示個人質押總量： 0 ETH
+- 資產將返回給用戶
+補充說明：因為 Lido 發送的獎勵在 fork 出來後就不會增加了，合約中會用到 Lido 發送的獎勵做計算，故目前尚無法 demo 獎勵的部分
+
