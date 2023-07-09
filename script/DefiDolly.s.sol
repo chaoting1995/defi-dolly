@@ -6,8 +6,8 @@ import { Transparent } from "../src/Transparent.sol";
 import { DefiDolly } from "../src/DefiDolly.sol";
 
 // forge script DefiDollyScript --rpc-url https://rpc.tenderly.co/fork/7544f53a-f939-4181-a42a-914fca1dec13 --broadcast
-// implement address:  0xFc283CCb60E30deBA9211A112BF90b8a6874C2EB
-// transperant address:  0x2130F61DF0b41C0276d67c9ef2001d2826bc9C3c
+// implement address:  0x61b3c60bCD092d71F656a7ACb9B9b24cc47cEC50
+// transperant address:  0x9b0fd492dDC47Fe036ad4cD66c726291749FC573
 
 interface ITransparentUpgradeableProxy {
     function admin() external view returns (address);
@@ -24,14 +24,16 @@ interface ITransparentUpgradeableProxy {
 contract DefiDollyScript is Script {
   function setUp() public {}
   function run() external {
-    // console.log(vm.envUint("PRIVATE_KEY"));
     vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
+    // console.log(vm.envUint("PRIVATE_KEY"));
   
     // deploy contract
-    // DefiDolly defiDolly = new DefiDolly();
-    Transparent transparent = new Transparent(0xFc283CCb60E30deBA9211A112BF90b8a6874C2EB);
-    
-    
+    // 1. 先得到 Imple contract address 
+    DefiDolly defiDolly = new DefiDolly();
+    // 2. 再部署 Transparent contract
+    Transparent transparent = new Transparent(address(defiDolly));
+    DefiDolly defiDollyProx = DefiDolly(payable(address(transparent)));
+    defiDollyProx.initialize(true);
 
     // upgrade contract
     // DefiDolly defiDolly = new DefiDolly();
@@ -39,7 +41,9 @@ contract DefiDollyScript is Script {
 
     // transparent.upgradeTo(address(defiDolly));
 
-    // console.log("implement address: ", address(defiDolly));
+    // 1. 先得到 Imple contract address 
+    console.log("implement address: ", address(defiDolly));
+    // 2. 再部署 Transparent contract
     console.log("transperant address: ", address(transparent));
 
     vm.stopBroadcast();

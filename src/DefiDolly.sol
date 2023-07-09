@@ -207,13 +207,13 @@ contract DefiDolly is Ownable, IUniswapV3SwapCallback{
 
         int liquidity = 0;
         for (uint8 i = 0; i < numAssets; i++) {
-        if (_isInAsset(assetsIn, i)) {
-            CometStructs.AssetInfo memory asset = compoundV3.getAssetInfo(i);
-            uint newAmount = uint(amount) * _getCompoundPrice(asset.priceFeed) / 1e8;
-            liquidity += int(
-            newAmount * asset.borrowCollateralFactor / 1e18
-            );
-        }
+            if (_isInAsset(assetsIn, i)) {
+                CometStructs.AssetInfo memory asset = compoundV3.getAssetInfo(i);
+                uint newAmount = uint(amount) * _getCompoundPrice(asset.priceFeed) / 1e8;
+                liquidity += int(
+                newAmount * asset.borrowCollateralFactor / 1e18
+                );
+            }
         }
 
         return liquidity;
