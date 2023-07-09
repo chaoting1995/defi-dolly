@@ -61,6 +61,12 @@ sequenceDiagram
         Hub ->> -User: wstETH(= 1 ETH)
         Note right of User: unstake
 ```
+- Hub 的倉位資訊
+
+| 債務 | 帳面資產 | 實際資產 |
+| --- | --- | --- |
+| 用戶的 1 ETH & Compound 借貸的 9 ETH | 在 Compound 抵押的 wstETH(等值 10ETH ) | 0 |
+
 #### Unstake Flow
 ```mermaid
 sequenceDiagram
@@ -80,10 +86,23 @@ sequenceDiagram
 			Hub ->> -User: 1.0027 stETH
 			Note right of User: unstake
 ```
+- 用戶 Stake 1 ETH，經過兩天
+
+- Compound V3
+
+| 抵押 | 債務(含借款利息) |
+| --- | --- |
+| 8.9008 wstETH | 9.00164 ETH |
+
+- 用戶資產
+
+| 本金+收益 | 債務(含借款利息) |
+| --- | --- |
+| 1 stETH + 0.0027 stETH | 9.00164 ETH |
 
 ## Framework
 - Proxy Contract: `Transparent`
-- Imple Contrsct: `DefiDolly`
+- Imple Contract: `DefiDolly`
 
 ```mermaid
 graph LR
@@ -116,10 +135,10 @@ Include step-by-step instructions on how to set up and run the project.
 command example
 If this project includes BE or FE, provide instructions for those as well.
 ## Testing
-(TODO)
 
-Explain how to run the tests.
-[Nice to have] 80% or more coverage.
+```
+forge test --mc DefiDollyTest
+```
 ## Usage
 (TODO)
 
