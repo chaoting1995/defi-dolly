@@ -138,7 +138,7 @@ forge test --mc DefiDollyTest
 ### Step 1: Add test network into MetaMask
 > 交易過程會用到 WETH。Compound V3 跟 Balancer 的 WETH 地址，在正式鏈是相同的，但在測試鏈不同，因此最後一步還錢還不了Balancer，故選擇用 Tenderly fork 正式鏈進行測試
 - name: Dolly Testnet
-- rpc-url: `https://rpc.tenderly.co/fork/7544f53a-f939-4181-a42a-914fca1dec13`
+- rpc-url: `https://rpc.tenderly.co/fork/12f94293-89c9-4624-af4c-8b30ad80c992`
 - chainID: 1
 - Symbol: ETH
 
