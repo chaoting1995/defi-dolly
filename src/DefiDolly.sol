@@ -141,63 +141,95 @@ contract DefiDolly is Ownable, IUniswapV3SwapCallback{
         );
     }
 
-    function receiveFlashLoan(
-        IERC20[] memory tokens,
-        uint256[] memory amounts,
-        uint256[] memory feeAmounts,
-        bytes calldata userData
-    ) external checkIsBalancerVault() {
+    function receiveFlashLoan(IERC20[] memory tokens, uint256[] memory amounts, uint256[] memory feeAmounts, bytes calldata userData) external checkIsBalancerVault() {
         IERC20 token = tokens[0];
         uint256 amount = amounts[0];
+        // 檢查借貸利息為 0
         uint256 feeAmount = feeAmounts[0];
         require(feeAmount == 0, "balancer now need fee");
+        // 檢查借貸成功
         require(token.balanceOf(address(this)) >= amount);
+
+        // decode
         FlashLoanCallBack memory callbackData = abi.decode(userData, (FlashLoanCallBack));
+        // 取得 stake order 
         StakeOrder storage order = accounts[callbackData.account].stakeOrders[uint256(callbackData.index)];
+        
+        // wETH -> ETH
         wETH.withdraw(amount);
+        // ETH -> wstETH
         (bool sent, ) = address(wstETH).call{value: amount}("");
         require(sent, "Failed to send Ether");
+        
+        // amount 從 balancer 借的錢
+        // order.leverage 槓桿倍率
+        // totalSupply(單位: wETH) 用戶資產 + 槓桿資產 
         uint totalSupply = amount * (order.leverage + 10) / order.leverage;
+        // 計算 totalSupply 等值多少 wstETH
         totalSupply = wstETH.getWstETHByStETH(totalSupply) - 1;
+        
+        // CompoundV3: wstETH -> wETH
         wstETH.approve(address(compoundV3), totalSupply);
         compoundV3.supply(address(wstETH), totalSupply);
         compoundV3.withdraw(address(wETH), amount);
+        
+        // 更新訂單資訊
         order.supply = totalSupply;
         order.borrow = amount;
         totalBorrowETH += amount;
 
+        // 還錢(wETH)給 balancer(的金庫)
         token.transfer(balancerVault, amount);
     }
-
+    
+    /// @amount0Delta wstETH 數量
+    /// @amount1Delta wETH 數量
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) checkIsUniswap() external override {
         FlashLoanCallBack memory callbackData = abi.decode(data, (FlashLoanCallBack));
         Account storage account = accounts[callbackData.account];
         uint256 wethAmount = amount1Delta >= 0 ? uint256(amount1Delta) : uint256(-amount1Delta);
+        
+        // 算 user Compound total 借出數量
         uint256 repay = 0;
+        // 算 user 在 Compound total 抵押數量
         uint256 withdraw = 0;
         for(uint i = 0; i < account.stakeOrders.length; i++){
             if(!account.stakeOrders[i].isUnstaked) {
                 repay += account.stakeOrders[i].borrow;
                 withdraw += account.stakeOrders[i].supply;
+                // 領過的，更新狀態
                 account.stakeOrders[i].isUnstaked = true;
             }
         }
+        
+        // user 在 Compund 借貸利息
         uint256 interest = _getCompoundInterest(callbackData.account);
         totalBorrowETH -= repay;
+        // swap 出的 金額要 > Compound 貸款 + 貸款利息
         require(wethAmount > repay + interest, "uniswap get weth not enough");
+        
         wETH.approve(address(compoundV3), repay + interest);
         compoundV3.supply(address(wETH), repay + interest);
         compoundV3.withdraw(address(wstETH), withdraw);
         require(uint256(amount0Delta) == withdraw, "amount0Delta != withdraw");
+        
+        // 還 Uniswap wstETH
+        // msg.sender 是 uniswap
         wstETH.transfer(msg.sender, uint(amount0Delta));
 
+        // 計算 用戶所得 = 總所得 - compound貸款 - compound貸款利息 - hub 收益
         wethAmount = wethAmount - repay - interest - _getProtocolEarn(callbackData.account);
+        
+        // TODO: 檢查不能 < 0
 
+        // 更新 account
         account.totalStakedETH = 0;
         account.totalStakedstETH = 0;
         account.totalStakedwstETH = 0;
         
+        // 轉給用戶
         wETH.transfer(callbackData.account, wethAmount);
+
         totalstakeETH -= ( account.totalStakedETH + account.totalStakedstETH);
     }
 
@@ -277,8 +309,10 @@ contract DefiDolly is Ownable, IUniswapV3SwapCallback{
     }
 
     function stake(address _referral) external payable checkIsLock lock unlock checkReferral(_referral) returns(uint256 stakeAmountETH) {
+        // 用戶的 ETH -> wstETH
         (bool sent, ) = address(wstETH).call{value: msg.value}("");
         require(sent, "Failed to send Ether");
+        // 
         _stake(0, msg.value, _referral);
         return accounts[msg.sender].totalStakedETH;
     }
@@ -297,13 +331,17 @@ contract DefiDolly is Ownable, IUniswapV3SwapCallback{
         uint32 _leverage = maxLeverage;
         for(uint i = 0; i < 100; i++){
             uint256 tempTokenAmount = _amount * ( _leverage + 10 ) / 10;
+            // 在 CompoundV3 可貸 WETH 數量 要 > Balancer 可貸 WETH 數量
             if(uint256(_getBorrowableAmountByWstETH(wstETH.getWstETHByStETH(tempTokenAmount))) > _amount * _leverage / 10){
                 break;
             }
             _leverage -= 1;
         }
+        // 要從 Balancer 借的 wETH 數量
         uint256 tokenAmount = _amount * _leverage / 10;
+        // 建立訂單，返回訂單 index
         uint32 index = _addStakeOrders(coins, _amount, _leverage);
+        // 要借的 tokean address
         IERC20[] memory tokens = new IERC20[](1);
         tokens[0] = wETH;
         uint256[] memory amounts = new uint256[](1);
@@ -403,7 +441,9 @@ contract DefiDolly is Ownable, IUniswapV3SwapCallback{
 
     function unstake() external payable checkIsLock lock unlock returns(uint256 unstakeAmountETH) {
         Account storage account = accounts[msg.sender];
+        // 算 user 在 Compound total 抵押數量
         uint256 amount = 0;
+        // 算 user Compound total 借出數量
         uint256 repay = 0;
         for(uint i = 0; i < account.stakeOrders.length; i++){
             if(!account.stakeOrders[i].isUnstaked) {
@@ -411,9 +451,14 @@ contract DefiDolly is Ownable, IUniswapV3SwapCallback{
                 amount += account.stakeOrders[i].supply;
             }
         }
+        // user 在 Compund 借貸利息
         uint256 interest = _getCompoundInterest(msg.sender);
+        // Hub 利潤
         uint256 protocolEarn = _getProtocolEarn(msg.sender);
+        
+        // 100 means 0.01% pool
         IUniswapV3Pool pool = IUniswapV3Pool(_uniswapV3Factory.getPool(address(wstETH), address(wETH), 100));
+        // wstETH -> wETH
         bool zeroForOne = true;
         uint160 sqrtPriceLimitX96 = zeroForOne
             ? _minSqrtRatio + 1
@@ -425,8 +470,17 @@ contract DefiDolly is Ownable, IUniswapV3SwapCallback{
             index: 0
         });
 
+        /// @recipient address(this)
+        /// @zeroForOne
+        /// @amountSpecified
+        /// @aqrtPriceLimitX96
+        /// @data
         (, int256 amount1) = pool.swap(address(this), zeroForOne, int256(amount), sqrtPriceLimitX96, abi.encode(callbackData));
+        /// @amount1 用戶本金 + 槓桿資產 + Lido 利潤 
+
         unstakeAmountETH = amount1 >= 0 ? uint256(amount1) : uint256(-amount1);
+
+        // 計算 用戶所得 = 總所得 - compound貸款 - compound貸款利息 - hub 收益
         unstakeAmountETH = unstakeAmountETH - repay - interest - protocolEarn;
 
         emit Unstake(msg.sender, amount, unstakeAmountETH, block.timestamp);
