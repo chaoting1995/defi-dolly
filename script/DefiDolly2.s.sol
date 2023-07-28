@@ -17,7 +17,7 @@ contract DefiDollyScript2 is Script {
     // deploy transparent contract
     Transparent transparent = new Transparent(imple);    
     DefiDolly defiDollyProx = DefiDolly(payable(address(transparent)));
-    defiDollyProx.initialize(true);
+    defiDollyProx.initialize();
 
     console.log("transperant address: ", address(transparent));
     // transperant address:  0x9b0fd492dDC47Fe036ad4cD66c726291749FC573

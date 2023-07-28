@@ -33,7 +33,7 @@ contract DefiDollyScript is Script {
     // 2. 再部署 Transparent contract
     Transparent transparent = new Transparent(address(defiDolly));
     DefiDolly defiDollyProx = DefiDolly(payable(address(transparent)));
-    defiDollyProx.initialize(true);
+    defiDollyProx.initialize();
 
     // upgrade contract
     // DefiDolly defiDolly = new DefiDolly();
