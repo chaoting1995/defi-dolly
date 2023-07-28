@@ -14,7 +14,8 @@ import { DefiDolly } from "../src/DefiDolly.sol";
 // transperant address: 
 // implement gas used: 4218331
 // transperant gas used: 741538
-
+// 4196444
+// 4204644
 interface ITransparentUpgradeableProxy {
     function admin() external view returns (address);
 
