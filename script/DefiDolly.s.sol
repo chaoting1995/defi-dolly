@@ -9,6 +9,12 @@ import { DefiDolly } from "../src/DefiDolly.sol";
 // implement address:  0x61b3c60bCD092d71F656a7ACb9B9b24cc47cEC50
 // transperant address:  0x9b0fd492dDC47Fe036ad4cD66c726291749FC573
 
+// forge script DefiDollyScript --rpc-url https://eth-mainnet.g.alchemy.com/v2/ZYCLAqbBKOsvESi-CXonybfrmGWdaVpd --broadcast
+// implement address:  
+// transperant address: 
+// implement gas used: 4218331
+// transperant gas used: 741538
+
 interface ITransparentUpgradeableProxy {
     function admin() external view returns (address);
 
