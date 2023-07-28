@@ -37,9 +37,9 @@ contract DefiDollyScript is Script {
     // 1. 先得到 Imple contract address 
     DefiDolly defiDolly = new DefiDolly();
     // 2. 再部署 Transparent contract
-    Transparent transparent = new Transparent(address(defiDolly));
-    DefiDolly defiDollyProx = DefiDolly(payable(address(transparent)));
-    defiDollyProx.initialize();
+    // Transparent transparent = new Transparent(address(defiDolly));
+    // DefiDolly defiDollyProx = DefiDolly(payable(address(transparent)));
+    // defiDollyProx.initialize();
 
     // upgrade contract
     // DefiDolly defiDolly = new DefiDolly();
@@ -50,7 +50,7 @@ contract DefiDollyScript is Script {
     // 1. 先得到 Imple contract address 
     console.log("implement address: ", address(defiDolly));
     // 2. 再部署 Transparent contract
-    console.log("transperant address: ", address(transparent));
+    // console.log("transparent address: ", address(transparent));
 
     vm.stopBroadcast();
   }
